@@ -20,6 +20,7 @@ and model parameter inspection.
 """
 
 import tempfile
+from unittest.mock import patch
 
 import numpy as np
 from parameterized import parameterized
@@ -45,6 +46,7 @@ from transformers.testing_utils import (
     require_torch_accelerator,
     require_torch_optimi,
 )
+from transformers.trainer_optimizer import has_mixed_dtensor
 from transformers.trainer_utils import check_target_module_exists
 
 from .trainer_test_utils import (
@@ -78,6 +80,13 @@ class TrainerOptimizerIntegrationTest(TestCasePlus, TrainerIntegrationCommon):
     # ---------------------------------------------------------------------------
     # Helpers
     # ---------------------------------------------------------------------------
+
+    def test_has_mixed_dtensor_without_torch_distributed(self):
+        with (
+            patch("torch.distributed.is_available", return_value=False),
+            patch.dict("sys.modules", {"torch.distributed.tensor": None}),
+        ):
+            self.assertFalse(has_mixed_dtensor([torch.ones(1)]))
 
     def _get_llama_and_dataset(self):
         config = LlamaConfig(vocab_size=100, hidden_size=32, num_hidden_layers=3, num_attention_heads=4)

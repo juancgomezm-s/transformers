@@ -215,6 +215,9 @@ def _get_adamw_torch(ctx: OptimizerContext) -> tuple[Any, dict[str, Any]]:
 def has_mixed_dtensor(tensors) -> bool:
     """Whether `tensors` mixes `DTensor` and plain tensors, as expert parallelism leaves a model:
     experts sharded, everything else replicated."""
+    if not torch.distributed.is_available():
+        return False
+
     from torch.distributed.tensor import DTensor
 
     tensors = list(tensors)
